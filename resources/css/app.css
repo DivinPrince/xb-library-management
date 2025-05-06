@@ -15,6 +15,9 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+body{
+    @apply p-8
+}
 html,body,:root{
     @apply h-full
 }
@@ -22,8 +25,12 @@ html,body,:root{
     @apply flex flex-col w-[350px] gap-2 p-4 border border-gray-500 rounded-md
 }
 
+nav{
+    @apply py-4
+}
+
 button{
-    @apply p-2 w-full bg-amber-200 rounded-md
+    @apply p-2 bg-amber-200 rounded-md cursor-pointer
 }
 
 input {
@@ -36,4 +43,82 @@ h2{
 
 option{
     @apply p-2
+}
+
+.book-card{
+    @apply p-4 border border-gray-200 flex justify-between mb-2
+}
+
+table {
+    @apply w-full border-collapse border border-gray-300 mb-4
+}
+
+th {
+    @apply bg-gray-100 text-left p-3 border border-gray-300 font-medium
+}
+
+td {
+    @apply p-3 border border-gray-300
+}
+
+tr:hover {
+    @apply bg-gray-50
+}
+
+/* User Dropdown Styles */
+.user-dropdown {
+    @apply relative
+}
+
+.user-dropdown button {
+    @apply flex items-center gap-2 p-2 rounded-full bg-blue-100 hover:bg-blue-200 transition-colors duration-200
+}
+
+.user-dropdown button svg {
+    @apply h-4 w-4 transition-transform duration-200
+}
+
+.user-dropdown.active button svg {
+    @apply transform rotate-180
+}
+
+#userDropdown {
+    @apply absolute right-0 mt-2 bg-white shadow-lg rounded py-2 w-48 hidden z-10 border border-gray-100;
+    transform-origin: top right;
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+#userDropdown:not(.hidden) {
+    @apply block;
+    pointer-events: auto;
+    opacity: 1;
+    transform: scale(1);
+}
+
+#userDropdown div {
+    @apply px-4 py-2 text-sm text-gray-700 border-b border-gray-100
+}
+
+#userDropdown div div:first-child {
+    @apply font-medium
+}
+
+#userDropdown div div:nth-child(2) {
+    @apply text-xs text-gray-500
+}
+
+#userDropdown div div:nth-child(3) {
+    @apply text-xs font-semibold mt-1
+}
+
+#userDropdown a {
+    @apply block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors
+}
+
+/* Book return button style */
+.bg-yellow-400 {
+    @apply bg-yellow-400 hover:bg-yellow-500 text-gray-800 transition-colors
 }

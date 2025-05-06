@@ -18,7 +18,9 @@ class AuthController extends Controller
             return redirect("/");
         }
 
-        return back()->with("errors", "Invalid Credentials");
+        return back()->withErrors([
+            "errors"=>"Invalid Credentials"
+        ]);
     }
     public function register(Request $request)
     {
@@ -33,9 +35,7 @@ class AuthController extends Controller
 
         if ($user) {
             return back()->withErrors([
-
-                'error' => 'Invalid Credentials',
-
+                "errors"=>"Invalid Credentials"
             ]);
         }
 
@@ -46,7 +46,7 @@ class AuthController extends Controller
 
         return back()->withErrors([
 
-            'error' => 'Invalid Credentials',
+            'errors' => 'Invalid Credentials',
 
         ]);
     }

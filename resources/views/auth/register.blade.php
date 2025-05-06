@@ -1,5 +1,5 @@
 <x-layout>
-    <x-auth>
+    <x-container>
         <h2>Register</h2>
         <form class="form" accept="{{ route("registerUser") }}" method="post">
             @csrf
@@ -16,5 +16,5 @@
             <p>Already Have an account? <a href="{{ route("login") }}" class="text-blue-400 hover:underline">Login</a></p>
 
         </form>
-    </x-auth>
+    </x-container>
 </x-layout>
