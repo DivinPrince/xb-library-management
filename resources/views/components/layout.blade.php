@@ -1517,6 +1517,15 @@
 </head>
 
 <body>
+    @if ($errors)
+        <div class="text-center text-red-600 font-bold">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
     {{ $slot }}
 </body>
 

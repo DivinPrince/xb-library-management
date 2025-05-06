@@ -5,7 +5,35 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+}
+html,body,:root{
+    @apply h-full
+}
+.form{
+    @apply flex flex-col w-[350px] gap-2 p-4 border border-gray-500 rounded-md
+}
+
+button{
+    @apply p-2 w-full bg-amber-200 rounded-md
+}
+
+input {
+    @apply p-2 w-full border border-gray-200 rounded-md
+}
+
+h2{
+    @apply text-2xl
+}
+
+option{
+    @apply p-2
 }
