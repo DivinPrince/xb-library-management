@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BookBorrows;
 use App\Models\Books;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BooksController extends Controller
 {
@@ -18,20 +19,24 @@ class BooksController extends Controller
         $books = Books::all();
 
         foreach ($books as $book) {
+            // Count active borrows for this book
+            $activeBookBorrows = BookBorrows::where("bookid", $book->bookid)->count();
+            
+            // Calculate available copies
+            $book->availableCopies = max(0, $book->quantity - $activeBookBorrows);
+            
             // Get borrow information
-            $borrow = BookBorrows::where("bookid", $book->bookid)->first();
+            $userBorrow = BookBorrows::where("bookid", $book->bookid)
+                ->where('userid', $user->id)
+                ->first();
 
-            if ($borrow) {
-                $book->isborrowed = true;
-                $book->borrowId = $borrow->id;
-                
-                // Check if the current user borrowed this book
-                if ($borrow->userid == $user->id) {
-                    $book->borrowedByMe = true;
-                }
-            } else {
-                $book->isborrowed = false;
+            if ($userBorrow) {
+                $book->borrowedByMe = true;
+                $book->borrowId = $userBorrow->id;
             }
+            
+            // Mark as borrowed if all copies are taken
+            $book->isborrowed = ($book->availableCopies <= 0);
         };
         return view("books.index", compact("user", "books"));
     }
@@ -51,6 +56,7 @@ class BooksController extends Controller
     {
         $values = $request->validate([
             "bookname" => "required|string",
+            "quantity" => "required|integer|min:1",
         ]);
 
         $user = auth()->user();
@@ -88,19 +94,53 @@ class BooksController extends Controller
     {
         $values = $request->validate([
             "bookname" => "required|string",
+            "quantity" => "required|integer|min:1",
         ]);
         
         $user = auth()->user();
         
         if ($user->role === "admin") {
+            // Get current number of borrows for this book
+            $currentBorrows = BookBorrows::where('bookid', $book->bookid)->count();
+            
+            // Ensure new quantity is not less than current borrows
+            if ($values['quantity'] < $currentBorrows) {
+                return back()->withErrors([
+                    "errors" => "Cannot reduce quantity below the number of currently borrowed copies ($currentBorrows)"
+                ]);
+            }
+            
             $book->update($values);
             return redirect(route("books.index", compact("user")));
         }
     }
+    
     public function borrow($id)
     {
         $user = auth()->user();
         $book = Books::find($id);
+        
+        // Check if user already has a borrowed copy of this book
+        $existingBorrow = BookBorrows::where('bookid', $book->bookid)
+            ->where('userid', $user->id)
+            ->exists();
+            
+        if ($existingBorrow) {
+            return back()->withErrors([
+                "errors" => "You already have a copy of this book borrowed"
+            ]);
+        }
+        
+        // Count active borrows for this book
+        $activeBookBorrows = BookBorrows::where("bookid", $book->bookid)->count();
+        
+        // Check if there are available copies
+        if ($activeBookBorrows >= $book->quantity) {
+            return back()->withErrors([
+                "errors" => "No copies available for borrowing"
+            ]);
+        }
+        
         return view("books.borrow", compact("user", "book"));
     }
 
@@ -115,19 +155,33 @@ class BooksController extends Controller
         $user = auth()->user();
 
         if ($user->role !== "admin") {
-            $borrow = BookBorrows::firstWhere("bookid", $book->bookid);
-
-            if($borrow){
+            // Check if user already has a borrowed copy of this book
+            $existingBorrow = BookBorrows::where('bookid', $book->bookid)
+                ->where('userid', $user->id)
+                ->exists();
+                
+            if ($existingBorrow) {
                 return back()->withErrors([
-                    "errors"=>"Book Already Borrowed"
+                    "errors" => "You already have a copy of this book borrowed"
                 ]);
             }
+            
+            // Count active borrows for this book
+            $activeBookBorrows = BookBorrows::where("bookid", $book->bookid)->count();
+            
+            // Check if there are available copies
+            if ($activeBookBorrows >= $book->quantity) {
+                return back()->withErrors([
+                    "errors" => "No copies available for borrowing"
+                ]);
+            }
+            
             BookBorrows::create([
-                "bookid"=>$book->bookid,
-                "userid"=>$user->id,
+                "bookid" => $book->bookid,
+                "userid" => $user->id,
                 ...$values
             ]);
-            return redirect(route("books.index", compact("user")));
+            return redirect(route("books.index", compact("user")))->with('success', 'Book borrowed successfully');
         }
     }
     
@@ -158,6 +212,15 @@ class BooksController extends Controller
         $user = auth()->user();
 
         if ($user->role === "admin") {
+            // Check if any copies are currently borrowed
+            $borrowedCount = BookBorrows::where('bookid', $book->bookid)->count();
+            
+            if ($borrowedCount > 0) {
+                return back()->withErrors([
+                    "errors" => "Cannot delete book while copies are still borrowed"
+                ]);
+            }
+            
             $book->delete();
             return redirect(route("books.index", compact("user")));
         }

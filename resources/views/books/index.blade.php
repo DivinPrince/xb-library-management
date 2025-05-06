@@ -9,7 +9,14 @@
     
     @foreach ($books as $book)
         <div class="book-card">
-            {{ $book->bookname }}
+            <div class="book-info">
+                <h3 class="book-title">{{ $book->bookname }}</h3>
+                <div class="book-availability">
+                    <span class="text-sm {{ $book->availableCopies > 0 ? 'text-green-600' : 'text-red-600' }}">
+                        {{ $book->availableCopies }} of {{ $book->quantity }} copies available
+                    </span>
+                </div>
+            </div>
             <div class="flex gap-4 items-center">
                 @if ($user->role === "admin")
                     <a href="{{ route("books.edit",$book->bookid) }}">Edit</a>
@@ -18,25 +25,23 @@
                         @method("delete")
                         <button>Delete</button>
                     </form>
-                    @if ($book->isborrowed)
-                        <form action="{{ route("books.return", $book->borrowId ?? 0) }}" method="post">
+                    @if (isset($book->borrowedByMe) && $book->borrowedByMe)
+                        <form action="{{ route("books.return", $book->borrowId) }}" method="post">
                             @csrf
                             <button class="bg-yellow-400">Return Book</button>
                         </form>
                     @endif
                 @else
                     <div>
-                        @if ($book->isborrowed)
-                            @if (isset($book->borrowedByMe) && $book->borrowedByMe)
-                                <form action="{{ route("books.return", $book->borrowId) }}" method="post">
-                                    @csrf
-                                    <button class="bg-yellow-400">Return Book</button>
-                                </form>
-                            @else
-                                <p>Book is Borrowed</p>
-                            @endif
+                        @if (isset($book->borrowedByMe) && $book->borrowedByMe)
+                            <form action="{{ route("books.return", $book->borrowId) }}" method="post">
+                                @csrf
+                                <button class="bg-yellow-400">Return Book</button>
+                            </form>
+                        @elseif ($book->availableCopies <= 0)
+                            <p class="text-red-600">No copies available</p>
                         @else 
-                            <a href="{{ route("books.borrow", $book->bookid) }}"><button>borrow</button></a>
+                            <a href="{{ route("books.borrow", $book->bookid) }}"><button>Borrow</button></a>
                         @endif
                     </div>
                 @endif
